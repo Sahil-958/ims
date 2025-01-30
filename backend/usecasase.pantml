@@ -1,0 +1,43 @@
+@startuml
+left to right direction
+actor "User" as User
+
+rectangle "Image Processing System" {
+  rectangle "Frontend" {
+    actor "CLI Client" as CLI
+    actor "React Frontend" as React
+
+    usecase "Upload Image" as UploadImageFrontend
+
+    CLI --> UploadImageFrontend
+    React --> UploadImageFrontend
+    User --> CLI
+    User --> React
+  }
+
+  rectangle "Backend Server" {
+    usecase "Generate Caption" as GenerateCaption
+    usecase "Detect Objects" as DetectObjects
+    usecase "Detect Emotions" as DetectEmotions
+    usecase "Generate OCR" as GenerateOCR
+
+    UploadImageFrontend --> GenerateCaption : POST /generate-caption
+    UploadImageFrontend --> DetectObjects : POST /detect-obj
+    UploadImageFrontend --> DetectEmotions : POST /detect-emo
+    UploadImageFrontend --> GenerateOCR : POST /generate-ocr
+  }
+}
+
+note right of UploadImageFrontend
+  The specific feature depends on
+  the type of POST request made:
+  - POST /generate-caption
+  - POST /detect-obj
+  - POST /detect-emo
+  - POST /generate-ocr
+end note
+
+note right of "Backend Server"
+  Server processes image and returns JSON responses
+end note
+@enduml
