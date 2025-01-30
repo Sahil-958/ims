@@ -23,7 +23,14 @@ export default function DropzoneButton() {
   const [file, setFile] = useState(null);
   const [action, setAction] = useState(null);
   const [result, setResult] = useState(null);
-  const [chartData, setChartData] = useState(null);
+  const initalChartData = [
+    { label: "happy", score: 0 },
+    { label: "neutral", score: 0 },
+    { label: "surprise", score: 0 },
+    { label: "sad", score: 0 },
+    { label: "fear", score: 0 },
+  ];
+  const [chartData, setChartData] = useState(initalChartData);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const canvasRef = useRef(null);
@@ -57,9 +64,7 @@ export default function DropzoneButton() {
           setResult(JSON.stringify(data));
           break;
         case "detect-emo":
-          //[{"label":"surprise","score":0.4650794565677643},{"label":"fear","score":0.3646908104419708},{"label":"happy","score":0.04820779711008072},{"label":"angry","score":0.041245102882385254},{"label":"sad","score":0.0352383553981781}]
           setResult(JSON.stringify(data));
-          //convert scrore to int before setting
           setChartData(data.map((d) => ({ ...d, score: d.score * 100 })));
         default:
           setResult(JSON.stringify(data));
@@ -70,7 +75,6 @@ export default function DropzoneButton() {
       setLoading(false);
     }
   }
-  console.log(chartData);
   useEffect(() => {
     if (
       action?.value === "detect-obj" &&
@@ -127,6 +131,8 @@ export default function DropzoneButton() {
     const imageUrl = URL.createObjectURL(val[0]);
     setImage(imageUrl);
     setFile(val[0]);
+    setResult(null);
+    setChartData(initalChartData);
   }
 
   return (
