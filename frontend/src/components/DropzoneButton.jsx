@@ -23,6 +23,7 @@ export default function DropzoneButton() {
   const [file, setFile] = useState(null);
   const [action, setAction] = useState(null);
   const [result, setResult] = useState(null);
+  const [detectedObjs, setDetectedObjs] = useState([]);
   const initalChartData = [
     { label: "happy", score: 0 },
     { label: "neutral", score: 0 },
@@ -48,7 +49,7 @@ export default function DropzoneButton() {
     setResult("");
 
     try {
-      const response = await fetch(`http://127.0.0.1:5000/${action.value}`, {
+      const response = await fetch(`http://localhost:5100/${action.value}`, {
         method: "POST",
         body: formData,
       });
@@ -61,11 +62,16 @@ export default function DropzoneButton() {
           setResult(`${data[0].generated_text}`);
           break;
         case "detect-obj":
-          setResult(JSON.stringify(data));
+          setResult(
+            `${data.map((d) => `"${d.label}" ${(d.score * 100).toFixed(2)}%`).join(" ")}`,
+          );
+          setDetectedObjs(data);
           break;
         case "detect-emo":
-          setResult(JSON.stringify(data));
+          setResult("Refer to the Radar Chart for Results");
           setChartData(data.map((d) => ({ ...d, score: d.score * 100 })));
+          console.log(chartData);
+          break;
         default:
           setResult(JSON.stringify(data));
       }
@@ -76,12 +82,7 @@ export default function DropzoneButton() {
     }
   }
   useEffect(() => {
-    if (
-      action?.value === "detect-obj" &&
-      result &&
-      canvasRef.current &&
-      image
-    ) {
+    if (image && canvasRef.current && detectedObjs) {
       console.log("useeffect");
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
@@ -93,7 +94,7 @@ export default function DropzoneButton() {
         context.drawImage(img, 0, 0);
 
         // Draw bounding boxes
-        JSON.parse(result).forEach((obj) => {
+        detectedObjs.forEach((obj) => {
           const { xmin, ymin, xmax, ymax } = obj.box;
           context.strokeStyle = "red";
           context.lineWidth = 2;
@@ -104,7 +105,7 @@ export default function DropzoneButton() {
 
           const text = `${obj.label} (${(obj.score * 100).toFixed(1)}%)`;
           const textHeight = fontSize * 1.2;
-          let labelY = ymin <= 10 ? ymax + textHeight + 4 : ymin - 5;
+          let labelY = ymin - textHeight <= 15 ? ymax - 5 : ymin - 5;
 
           // Draw background rectangle behind the text
           context.fillStyle = "rgba(0, 0, 0, 0.7)"; // Semi-transparent background
@@ -131,8 +132,10 @@ export default function DropzoneButton() {
     const imageUrl = URL.createObjectURL(val[0]);
     setImage(imageUrl);
     setFile(val[0]);
+
     setResult(null);
     setChartData(initalChartData);
+    setDetectedObjs([]);
   }
 
   return (
@@ -212,7 +215,11 @@ export default function DropzoneButton() {
               data={chartData}
               dataKey="label"
               series={[{ name: "score" }]}
-            />{" "}
+              withPolarRadiusAxis
+              polarRadiusAxisProps={{
+                angle: 340,
+              }}
+            />
           </Paper>
         )}
       </Flex>
