@@ -10,7 +10,7 @@ const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024 },
 });
 
-const { captionModel, objectDetectionModel, emotionDetectionModel, ocrModel } =
+const { CAPTION, OBJECT_DETECTION, EMOTION_DETECTION, OCR, UPSCALER } =
   await loadModels();
 
 const processFile = (model, req, res, type) => {
@@ -38,19 +38,23 @@ const processFile = (model, req, res, type) => {
 };
 
 router.post("/generate-caption", upload.single("file"), (req, res) =>
-  processFile(captionModel, req, res, "Caption"),
+  processFile(CAPTION, req, res, "Caption"),
 );
 
 router.post("/detect-obj", upload.single("file"), (req, res) =>
-  processFile(objectDetectionModel, req, res, "Object Detection"),
+  processFile(OBJECT_DETECTION, req, res, "Object Detection"),
 );
 
 router.post("/detect-emo", upload.single("file"), (req, res) =>
-  processFile(emotionDetectionModel, req, res, "Emotion Detection"),
+  processFile(EMOTION_DETECTION, req, res, "Emotion Detection"),
 );
 
 router.post("/generate-ocr", upload.single("file"), (req, res) =>
-  processFile(ocrModel, req, res, "OCR"),
+  processFile(OCR, req, res, "OCR"),
+);
+
+router.post("/upscale", upload.single("file"), (req, res) =>
+  processFile(UPSCALER, req, res, "OCR"),
 );
 
 export default router;
