@@ -1,4 +1,3 @@
-// routes.js
 import express from "express";
 import multer from "multer";
 import { allowedFileType, removeUploadedFile } from "./utils.js";
@@ -10,8 +9,28 @@ const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024 },
 });
 
-const { CAPTION, OBJECT_DETECTION, EMOTION_DETECTION, OCR, UPSCALER } =
-  await loadModels();
+let models;
+
+try {
+  // Wait for all models to load
+  models = await loadModels();
+  console.log("Models loaded successfully!");
+
+  // Now define routes dynamically based on loaded models
+  Object.keys(models).forEach((modelKey) => {
+    router.post(
+      `/${modelKey.toLowerCase()}`,
+      upload.single("file"),
+      (req, res) => {
+        const model = models[modelKey];
+        processFile(model, req, res, modelKey);
+      },
+    );
+  });
+} catch (error) {
+  console.error("Error loading models:", error);
+  process.exit(1);
+}
 
 const processFile = (model, req, res, type) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
@@ -37,24 +56,21 @@ const processFile = (model, req, res, type) => {
     });
 };
 
-router.post("/generate-caption", upload.single("file"), (req, res) =>
-  processFile(CAPTION, req, res, "Caption"),
-);
+// Custom route to return all implemented routes
+router.get("/routes", (req, res) => {
+  const routeList = [];
 
-router.post("/detect-obj", upload.single("file"), (req, res) =>
-  processFile(OBJECT_DETECTION, req, res, "Object Detection"),
-);
+  // Iterate over the stack of routes
+  router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      // For routes with a path, add their method and path to the list
+      routeList.push({
+        method: Object.keys(middleware.route.methods).join(", ").toUpperCase(),
+        path: middleware.route.path,
+      });
+    }
+  });
 
-router.post("/detect-emo", upload.single("file"), (req, res) =>
-  processFile(EMOTION_DETECTION, req, res, "Emotion Detection"),
-);
-
-router.post("/generate-ocr", upload.single("file"), (req, res) =>
-  processFile(OCR, req, res, "OCR"),
-);
-
-router.post("/upscale", upload.single("file"), (req, res) =>
-  processFile(UPSCALER, req, res, "OCR"),
-);
-
+  res.json(routeList);
+});
 export default router;
