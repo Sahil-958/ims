@@ -30,8 +30,6 @@ export const loadModels = async () => {
       return { ...acc, ...modelObj };
     }, {});
 
-    console.log(loadedModels);
-
     console.log("All models loaded successfully!");
     return loadedModels;
   } catch (error) {

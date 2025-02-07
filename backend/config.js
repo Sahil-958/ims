@@ -6,27 +6,27 @@ export const config = {
   HOST: process.env.HOST || "localhost",
 
   PIPELINE_MODELS: {
-    CAPTION: {
+    "generate-caption": {
       type: "image-to-text",
       name: "Xenova/vit-gpt2-image-captioning",
       options: { dtype: "fp32" },
     },
-    OBJECT_DETECTION: {
+    "detect-obj": {
       type: "object-detection",
       name: "Xenova/detr-resnet-50",
       options: { dtype: "fp32" },
     },
-    EMOTION_DETECTION: {
+    "detect-emo": {
       type: "image-classification",
       name: "Xenova/facial_emotions_image_detection",
       options: { dtype: "fp32" },
     },
-    OCR: {
+    "generate-ocr": {
       type: "image-to-text",
       name: "Xenova/trocr-base-handwritten",
       options: { dtype: "fp32" },
     },
-    UPSCALER: {
+    upscale: {
       type: "image-to-image",
       name: "Xenova/4x_APISR_GRL_GAN_generator-onnx",
       options: { dtype: "fp32" },
